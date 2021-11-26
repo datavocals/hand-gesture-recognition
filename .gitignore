@@ -133,3 +133,12 @@ dmypy.json
 
 
 *.DS_store
+
+
+Hand*
+/test/
+/train/
+samples/runs
+samples/yolov5
+*.cache
+/dataset
