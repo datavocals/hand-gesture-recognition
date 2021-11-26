@@ -134,8 +134,11 @@ dmypy.json
 
 *.DS_store
 
-train
-test
+
 Hand*
-dataset
+/test/
+/train/
 samples/runs
+samples/yolov5
+*.cache
+/dataset
