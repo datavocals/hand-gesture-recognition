@@ -9,5 +9,6 @@ from yolov5_model import Yolov5Model
 from capture_frame_in_csi_camera import capture_frame
 
 model = Yolov5Model("model/weights/best.pt")
-pred = model.infer(capture_frame())
+img = capture_frame()[1]
+pred = model.infer(img) # HWC to CHW, BGR to RGB
 print(pred)
