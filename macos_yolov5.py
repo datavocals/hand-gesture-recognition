@@ -11,13 +11,15 @@ from capture_frame_in_csi_camera import gstreamer_pipeline
 
 model = Yolov5Model("model/weights/best.pt")
 
-cap = cv2.VideoCapture(gstreamer_pipeline(flip_method=0), cv2.CAP_GSTREAMER)
-
+cap = cv2.VideoCapture(2)
 while True:
     if cap.isOpened():
         retVal, img = cap.read()
         if retVal:
+            img = cv2.resize(img, (640, 480))
             pred = model.infer(img)
+            if pred != None:
+                print(pred)
         else:
             continue
     else:

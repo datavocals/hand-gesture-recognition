@@ -128,14 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
-
-
-
 *.DS_store
 
-
-Hand*
 /test/
 /train/
 samples/runs

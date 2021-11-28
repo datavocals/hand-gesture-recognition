@@ -18,7 +18,7 @@ class Yolov5Model:
         # Load model
         self.device = select_device(device)
         self.model = DetectMultiBackend(weights, device=self.device , dnn=False) # dnn: use OpenCV DNN for ONNX inference
-        self.stride, names, pt, jit, onnx, engine = self.model.stride, self.model.names, self.model.pt, self.model.jit, self.model.onnx, self.model.engine
+        self.stride, self.names, pt, jit, onnx, engine = self.model.stride, self.model.names, self.model.pt, self.model.jit, self.model.onnx, self.model.engine
         self.imgsz = check_img_size(imgsz, s=self.stride)  # check image size
 
         # Half
@@ -31,17 +31,24 @@ class Yolov5Model:
             self.model(torch.zeros(1, 3, *imgsz).to(self.device).type_as(next(self.model.model.parameters())))  # warmup
 
     def infer(self, image):
+        # change img data formation
+        image = letterbox(image, self.imgsz, stride=self.stride, auto=True)[0]
+        image = image.transpose((2, 0, 1))[::-1] # HWC to CHW, BGR to RGB
+        image = np.ascontiguousarray(image)
+
         # pre-process
         im = torch.from_numpy(image).to(self.device)
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255  # 0 - 255 to 0.0 - 1.0
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
-
-        # change img data formation
-        image = letterbox(im, self.imgsz, stride=self.stride, auto=True)[0]
-        image = image.transpose((2, 0, 1))[::-1]
-        image = np.ascontiguousarray(image)
         # inference
-        return self.model(image)
+        pred = self.model(im, augment=False, visualize=False)
+        # NMS
+        pred = non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45, classes=None)
+        
+        if len(pred[0]) > 0:
+            return self.names[int(pred[0][0][5])]
+        else:
+            return None
         
