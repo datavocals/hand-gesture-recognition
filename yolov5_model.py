@@ -33,7 +33,7 @@ class Yolov5Model:
     def infer(self, image):
         # change img data formation
         image = letterbox(image, self.imgsz, stride=self.stride, auto=True)[0]
-        image = image.transpose((2, 0, 1))[::-1]
+        image = image.transpose((2, 0, 1))[::-1] # HWC to CHW, BGR to RGB
         image = np.ascontiguousarray(image)
 
         # pre-process
@@ -44,5 +44,10 @@ class Yolov5Model:
             im = im[None]  # expand for batch dim
         
         # inference
-        return self.model(im)
+        pred = self.model(im)
+
+        # NMS
+        pred = non_max_suppression(pred, 0.25, 0.45, None, False, max_det=1000)
+
+        return pred
         
