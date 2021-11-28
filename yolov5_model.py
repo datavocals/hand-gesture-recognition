@@ -1,4 +1,5 @@
 import torch
+import cv2
 import numpy as np
 from model.yolov5.models.common import DetectMultiBackend
 from model.yolov5.utils.datasets import IMG_FORMATS, VID_FORMATS, LoadImages, LoadStreams
@@ -31,17 +32,16 @@ class Yolov5Model:
             self.model(torch.zeros(1, 3, *imgsz).to(self.device).type_as(next(self.model.model.parameters())))  # warmup
 
     def infer(self, image):
-        # change img data formation
-        image = letterbox(image, self.imgsz, stride=self.stride, auto=True)[0]
-        image = image.transpose((2, 0, 1))[::-1] # HWC to CHW, BGR to RGB
-        image = np.ascontiguousarray(image)
+        image = cv2.resize(image, (640, 480))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = np.moveaxis(image, -1 ,0)
 
         # pre-process
         im = torch.from_numpy(image).to(self.device)
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255  # 0 - 255 to 0.0 - 1.0
-        if len(im.shape) == 3:
-            im = im[None]  # expand for batch dim
+        if im.ndimension() == 3:
+            im = im.unsqueeze(0)
         
         # inference
         pred = self.model(im)
@@ -49,5 +49,18 @@ class Yolov5Model:
         # NMS
         pred = non_max_suppression(pred, 0.25, 0.45, None, False, max_det=1000)
 
-        return pred
+        items = []
+        
+        if pred[0] is not None and len(pred):
+            for p in pred[0]:
+                score = np.round(p[4].cpu().detach().numpy(),2)
+                label = int(p[5])
+
+                item = {'label': label,
+                        'score': score
+                        }
+
+                items.append(item)
+
+        return items
         
