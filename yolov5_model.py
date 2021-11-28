@@ -31,17 +31,18 @@ class Yolov5Model:
             self.model(torch.zeros(1, 3, *imgsz).to(self.device).type_as(next(self.model.model.parameters())))  # warmup
 
     def infer(self, image):
+        # change img data formation
+        image = letterbox(image, self.imgsz, stride=self.stride, auto=True)[0]
+        image = image.transpose((2, 0, 1))[::-1]
+        image = np.ascontiguousarray(image)
+
         # pre-process
         im = torch.from_numpy(image).to(self.device)
         im = im.half() if self.half else im.float()  # uint8 to fp16/32
         im /= 255  # 0 - 255 to 0.0 - 1.0
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
-
-        # change img data formation
-        image = letterbox(im, self.imgsz, stride=self.stride, auto=True)[0]
-        image = image.transpose((2, 0, 1))[::-1]
-        image = np.ascontiguousarray(image)
+        
         # inference
-        return self.model(image)
+        return self.model(im)
         
