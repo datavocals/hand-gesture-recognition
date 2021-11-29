@@ -17,7 +17,10 @@ while True:
     if cap.isOpened():
         retVal, img = cap.read()
         if retVal:
+            img = cv2.resize(img, (640, 480))
             pred = model.infer(img)
+            if pred != None:
+                print(pred)
         else:
             continue
     else:
