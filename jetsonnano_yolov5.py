@@ -12,7 +12,7 @@ from capture_frame_in_csi_camera import gstreamer_pipeline
 
 # set speed when communicate with arduino
 subprocess.Popen(["stty", "9600", "-F",  "/dev/ttyACM0", "raw", "-echo"]) # arduino device id on ubuntu: /dev/ttyACM0
-dev = os.open("/dev/sdp1", os.O_RDWR)
+dev = os.open("/dev/ttyACM0", os.O_RDWR)
 
 
 model = Yolov5Model("model/weights/best.pt")
